@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using SuperSocket.ClientEngine;
@@ -114,7 +113,7 @@ namespace WebSocket4Net.Protocol
         public override void SendCloseHandshake(WebSocket websocket, int statusCode, string closeReason)
         {
             // don't send close handshake now because the connection was closed already
-            if (websocket.State == WebSocketState.Closed)
+            if (websocket == null || websocket.State == WebSocketState.Closed)
                 return;
 
             websocket.Client.Send(CloseHandshake, 0, CloseHandshake.Length);
@@ -156,14 +155,14 @@ namespace WebSocket4Net.Protocol
                 handshakeBuilder.AppendFormatWithCrCf("GET {0} HTTP/1.1", websocket.TargetUri.ToString());
             }
 
+            handshakeBuilder.Append("Host: ");
+            handshakeBuilder.AppendWithCrCf(websocket.TargetUri.Host);
             handshakeBuilder.AppendWithCrCf("Upgrade: WebSocket");
             handshakeBuilder.AppendWithCrCf("Connection: Upgrade");
             handshakeBuilder.Append("Sec-WebSocket-Key1: ");
             handshakeBuilder.AppendWithCrCf(secKey1);
             handshakeBuilder.Append("Sec-WebSocket-Key2: ");
-            handshakeBuilder.AppendWithCrCf(secKey2);
-            handshakeBuilder.Append("Host: ");
-            handshakeBuilder.AppendWithCrCf(websocket.TargetUri.Host);
+            handshakeBuilder.AppendWithCrCf(secKey2);            
             handshakeBuilder.Append("Origin: ");
             handshakeBuilder.AppendWithCrCf(string.IsNullOrEmpty(websocket.Origin) ? websocket.TargetUri.Host : websocket.Origin);
 
@@ -235,7 +234,7 @@ namespace WebSocket4Net.Protocol
             Array.Copy(b3, 0, bChallenge, b1.Length + b2.Length, b3.Length);
 
             //Hash and return
-            byte[] hash = MD5.Create().ComputeHash(bChallenge);
+            byte[] hash = bChallenge.ComputeMD5Hash();
             return hash;
         }
 

@@ -31,21 +31,10 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-  <PropertyGroup>
-    <SignAssembly>True</SignAssembly>
-  </PropertyGroup>
-  <PropertyGroup>
-    <AssemblyOriginatorKeyFile>..\websocket4net.snk</AssemblyOriginatorKeyFile>
-  </PropertyGroup>
   <ItemGroup>
-    <Reference Include="SuperSocket.ClientEngine.Common">
-      <HintPath>..\Reference\SuperSocket.ClientEngine\Net35\$(Configuration)\SuperSocket.ClientEngine.Common.dll</HintPath>
-    </Reference>
-    <Reference Include="SuperSocket.ClientEngine.Core">
-      <HintPath>..\Reference\SuperSocket.ClientEngine\Net35\$(Configuration)\SuperSocket.ClientEngine.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="SuperSocket.ClientEngine.Protocol">
-      <HintPath>..\Reference\SuperSocket.ClientEngine\Net35\$(Configuration)\SuperSocket.ClientEngine.Protocol.dll</HintPath>
+    <Reference Include="SuperSocket.ClientEngine, Version=0.8.0.10, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\SuperSocket.ClientEngine.Core.0.8.0.10\lib\net35-client\SuperSocket.ClientEngine.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -54,6 +43,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ClosedEventArgs.cs" />
     <Compile Include="Command\BadRequest.cs" />
     <Compile Include="Command\Binary.cs" />
     <Compile Include="Command\Close.cs" />
@@ -62,6 +52,15 @@
     <Compile Include="Command\WebSocketCommandBase.cs" />
     <Compile Include="Command\Pong.cs" />
     <Compile Include="Command\Text.cs" />
+    <Compile Include="Common\ArraySegmentEx.cs" />
+    <Compile Include="Common\ArraySegmentList.cs" />
+    <Compile Include="Common\BinaryCommandInfo.cs" />
+    <Compile Include="Common\CommandInfo.cs" />
+    <Compile Include="Common\DelegateCommand.cs" />
+    <Compile Include="Common\IClientCommandReader.cs" />
+    <Compile Include="Common\ICommand.cs" />
+    <Compile Include="Common\ICommandInfo.cs" />
+    <Compile Include="Common\StringCommandInfo.cs" />
     <Compile Include="DataReceivedEventArgs.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="GlobalAssemblyInfo.cs" />
@@ -97,10 +96,14 @@
     <Compile Include="Protocol\WebSocketDataFrame.cs" />
     <Compile Include="WebSocket.cs" />
     <Compile Include="WebSocket.Net35.cs" />
+    <Compile Include="WebSocket.NoSilverlight.cs" />
     <Compile Include="WebSocketCommandInfo.cs" />
     <Compile Include="WebSocketContext.cs" />
     <Compile Include="WebSocketState.cs" />
     <Compile Include="WebSocketVersion.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.WebSocket4Net.Net35.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

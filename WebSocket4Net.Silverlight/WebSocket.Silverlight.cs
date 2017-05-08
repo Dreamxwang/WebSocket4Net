@@ -2,17 +2,18 @@
 using System.Net;
 using System.Collections.Generic;
 using System.Net.Sockets;
+using SuperSocket.ClientEngine;
 
 namespace WebSocket4Net
 {
     public partial class WebSocket
     {
-        public WebSocket(string uri, string subProtocol = "", List<KeyValuePair<string, string>> cookies = null, List<KeyValuePair<string, string>> customHeaderItems = null, string userAgent = "", string origin = "", WebSocketVersion version = WebSocketVersion.None, EndPoint httpConnectProxy = null)
+        public WebSocket(string uri, string subProtocol = "", List<KeyValuePair<string, string>> cookies = null, List<KeyValuePair<string, string>> customHeaderItems = null, string userAgent = "", string origin = "", WebSocketVersion version = WebSocketVersion.None, EndPoint httpConnectProxy = null, int receiveBufferSize = 0)
         {
-            Initialize(uri, subProtocol, cookies, customHeaderItems, userAgent, origin, version, httpConnectProxy);
+            Initialize(uri, subProtocol, cookies, customHeaderItems, userAgent, origin, version, httpConnectProxy, receiveBufferSize);
         }
 
-        public WebSocket(string uri, string subProtocol, string cookies, List<KeyValuePair<string, string>> customHeaderItems = null, string userAgent = "", string origin = "", WebSocketVersion version = WebSocketVersion.None, EndPoint httpConnectProxy = null)
+        public WebSocket(string uri, string subProtocol, string cookies, List<KeyValuePair<string, string>> customHeaderItems = null, string userAgent = "", string origin = "", WebSocketVersion version = WebSocketVersion.None, EndPoint httpConnectProxy = null, int receiveBufferSize = 0)
         {
             List<KeyValuePair<string, string>> cookieList = null;
 
@@ -42,7 +43,12 @@ namespace WebSocket4Net
                 }
             }
 
-            Initialize(uri, subProtocol, cookieList, customHeaderItems, userAgent, origin, version, httpConnectProxy);
+            Initialize(uri, subProtocol, cookieList, customHeaderItems, userAgent, origin, version, httpConnectProxy, receiveBufferSize);
+        }
+
+        private TcpClientSession CreateSecureTcpSession()
+        {
+            return new SslStreamTcpSession();
         }
 
         /// <summary>

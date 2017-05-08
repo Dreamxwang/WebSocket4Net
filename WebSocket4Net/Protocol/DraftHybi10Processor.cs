@@ -5,7 +5,6 @@ using System.Collections.Specialized;
 #endif
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Text;
 using SuperSocket.ClientEngine;
 
@@ -40,11 +39,10 @@ namespace WebSocket4Net.Protocol
         {
 #if !SILVERLIGHT
             var secKey = Convert.ToBase64String(Encoding.ASCII.GetBytes(Guid.NewGuid().ToString().Substring(0, 16)));
-            string expectedAccept = Convert.ToBase64String(SHA1.Create().ComputeHash(Encoding.ASCII.GetBytes(secKey + m_Magic)));
 #else
             var secKey = Convert.ToBase64String(ASCIIEncoding.Instance.GetBytes(Guid.NewGuid().ToString().Substring(0, 16)));
-            string expectedAccept = Convert.ToBase64String(SHA1.Create().ComputeHash(ASCIIEncoding.Instance.GetBytes(secKey + m_Magic)));
 #endif
+            string expectedAccept = (secKey + m_Magic).CalculateChallenge();
 
             websocket.Items[m_ExpectedAcceptKey] = expectedAccept;
 
@@ -63,14 +61,14 @@ namespace WebSocket4Net.Protocol
                 handshakeBuilder.AppendFormatWithCrCf("GET {0} HTTP/1.1", websocket.TargetUri.ToString());
             }
 
-            handshakeBuilder.AppendWithCrCf("Upgrade: WebSocket");
+            handshakeBuilder.Append("Host: ");
+            handshakeBuilder.AppendWithCrCf(websocket.HandshakeHost);
+            handshakeBuilder.AppendWithCrCf("Upgrade: websocket");
             handshakeBuilder.AppendWithCrCf("Connection: Upgrade");
             handshakeBuilder.Append("Sec-WebSocket-Version: ");
             handshakeBuilder.AppendWithCrCf(VersionTag);
             handshakeBuilder.Append("Sec-WebSocket-Key: ");
-            handshakeBuilder.AppendWithCrCf(secKey);
-            handshakeBuilder.Append("Host: ");
-            handshakeBuilder.AppendWithCrCf(websocket.HandshakeHost);
+            handshakeBuilder.AppendWithCrCf(secKey);            
             handshakeBuilder.Append(string.Format("{0}: ", m_OriginHeaderName));
             handshakeBuilder.AppendWithCrCf(websocket.Origin);
 
@@ -126,6 +124,11 @@ namespace WebSocket4Net.Protocol
 
         private byte[] EncodeDataFrame(int opCode, byte[] playloadData, int offset, int length)
         {
+            return EncodeDataFrame(opCode, true, playloadData, offset, length);
+        }
+
+        private byte[] EncodeDataFrame(int opCode, bool isFinal, byte[] playloadData, int offset, int length)
+        {
             byte[] fragment;
 
             int maskLength = 4;
@@ -160,8 +163,11 @@ namespace WebSocket4Net.Protocol
                 }
             }
 
-            //Set FIN
-            fragment[0] = (byte)(opCode | 0x80);
+            
+            if(isFinal)//Set FIN
+                fragment[0] = (byte)(opCode | 0x80);
+            else
+                fragment[0] = (byte)opCode;
 
             //Set mask bit
             fragment[1] = (byte)(fragment[1] | 0x80);
@@ -189,10 +195,12 @@ namespace WebSocket4Net.Protocol
         {
             var fragments = new List<ArraySegment<byte>>(segments.Count);
 
+            var lastPieceIndex = segments.Count - 1;
+
             for (var i = 0; i < segments.Count; i++)
             {
                 var playloadData = segments[i];
-                fragments.Add(new ArraySegment<byte>(EncodeDataFrame(OpCode.Binary, playloadData.Array, 0, playloadData.Count)));
+                fragments.Add(new ArraySegment<byte>(EncodeDataFrame(i == 0 ? OpCode.Binary : 0, i == lastPieceIndex, playloadData.Array, playloadData.Offset, playloadData.Count)));
             }
 
             websocket.Client.Send(fragments);
@@ -216,7 +224,7 @@ namespace WebSocket4Net.Protocol
             playloadData[1] = (byte)lowByte;
 
             // don't send close handshake now because the connection was closed already
-            if (websocket.State == WebSocketState.Closed)
+            if (websocket == null ||websocket.State == WebSocketState.Closed)
                 return;
 
             if (!string.IsNullOrEmpty(closeReason))

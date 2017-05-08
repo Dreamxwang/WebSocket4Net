@@ -98,17 +98,6 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="SuperSocket.ClientEngine.Common">
-      <HintPath>..\Reference\SuperSocket.ClientEngine\WP80\$(Configuration)\SuperSocket.ClientEngine.Common.dll</HintPath>
-    </Reference>
-    <Reference Include="SuperSocket.ClientEngine.Core">
-      <HintPath>..\Reference\SuperSocket.ClientEngine\WP80\$(Configuration)\SuperSocket.ClientEngine.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="SuperSocket.ClientEngine.Protocol">
-      <HintPath>..\Reference\SuperSocket.ClientEngine\WP80\$(Configuration)\SuperSocket.ClientEngine.Protocol.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="..\WebSocket4Net\ClosedEventArgs.cs">
       <Link>ClosedEventArgs.cs</Link>
     </Compile>
@@ -135,6 +124,33 @@
     </Compile>
     <Compile Include="..\WebSocket4Net\Command\WebSocketCommandBase.cs">
       <Link>Command\WebSocketCommandBase.cs</Link>
+    </Compile>
+    <Compile Include="..\WebSocket4Net\Common\ArraySegmentEx.cs">
+      <Link>Common\ArraySegmentEx.cs</Link>
+    </Compile>
+    <Compile Include="..\WebSocket4Net\Common\ArraySegmentList.cs">
+      <Link>Common\ArraySegmentList.cs</Link>
+    </Compile>
+    <Compile Include="..\WebSocket4Net\Common\BinaryCommandInfo.cs">
+      <Link>Common\BinaryCommandInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\WebSocket4Net\Common\CommandInfo.cs">
+      <Link>Common\CommandInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\WebSocket4Net\Common\DelegateCommand.cs">
+      <Link>Common\DelegateCommand.cs</Link>
+    </Compile>
+    <Compile Include="..\WebSocket4Net\Common\IClientCommandReader.cs">
+      <Link>Common\IClientCommandReader.cs</Link>
+    </Compile>
+    <Compile Include="..\WebSocket4Net\Common\ICommand.cs">
+      <Link>Common\ICommand.cs</Link>
+    </Compile>
+    <Compile Include="..\WebSocket4Net\Common\ICommandInfo.cs">
+      <Link>Common\ICommandInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\WebSocket4Net\Common\StringCommandInfo.cs">
+      <Link>Common\StringCommandInfo.cs</Link>
     </Compile>
     <Compile Include="..\WebSocket4Net\DataReceivedEventArgs.cs">
       <Link>DataReceivedEventArgs.cs</Link>
@@ -257,6 +273,15 @@
     <Compile Include="..\WebSocket4Net.Silverlight\WebSocket.Silverlight.cs">
       <Link>WebSocket.Silverlight.cs</Link>
     </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="SuperSocket.ClientEngine, Version=0.8.0.10, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\SuperSocket.ClientEngine.Core.0.8.0.10\lib\wp80\SuperSocket.ClientEngine.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\$(TargetFrameworkIdentifier)\$(TargetFrameworkVersion)\Microsoft.$(TargetFrameworkIdentifier).$(TargetFrameworkVersion).Overrides.targets" />
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\$(TargetFrameworkIdentifier)\$(TargetFrameworkVersion)\Microsoft.$(TargetFrameworkIdentifier).CSharp.targets" />

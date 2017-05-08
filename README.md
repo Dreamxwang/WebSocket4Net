@@ -1,4 +1,4 @@
-# WebSocket4Net
+# WebSocket4Net [![Build Status](https://travis-ci.org/kerryjiang/WebSocket4Net.svg?branch=master)](https://travis-ci.org/kerryjiang/WebSocket4Net) [![NuGet Version](https://img.shields.io/nuget/v/WebSocket4Net.svg?style=flat)](https://www.nuget.org/packages/WebSocket4Net/)
 
 a .NET websocket client implementation.
 
@@ -14,4 +14,6 @@ WebSocket4Net provides websocket client implementation for many different kinds 
 - Silverlight 4/5
 - WindowsPhone 7.5/8.0
 - Xamarin.Android
-- Xamarin.iOS
+- Xamarin.iOS (Classic and Unified API)
+- Universal Windows Platform
+- dotnet core

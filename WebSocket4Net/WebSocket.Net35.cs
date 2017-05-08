@@ -27,7 +27,7 @@ namespace WebSocket4Net
 
                 if(client != null)
                 {
-                    client.AllowUnstrustedCertificate = m_AllowUnstrustedCertificate;
+                    client.Security.AllowUnstrustedCertificate = m_AllowUnstrustedCertificate;
                 }
             }
         }
@@ -91,7 +91,13 @@ namespace WebSocket4Net
 
         public WebSocket(string uri, string subProtocol, List<KeyValuePair<string, string>> cookies, List<KeyValuePair<string, string>> customHeaderItems, string userAgent, string origin, WebSocketVersion version, EndPoint httpConnectProxy)
         {
-            Initialize(uri, subProtocol, cookies, customHeaderItems, userAgent, origin, version, httpConnectProxy);
+            Initialize(uri, subProtocol, cookies, customHeaderItems, userAgent, origin, version, httpConnectProxy, 0);
+        }
+
+        public WebSocket(string uri, string subProtocol, List<KeyValuePair<string, string>> cookies, List<KeyValuePair<string, string>> customHeaderItems, string userAgent, string origin, WebSocketVersion version, EndPoint httpConnectProxy, System.Security.Authentication.SslProtocols sslProtocols)
+        {
+            m_SecureProtocols = sslProtocols;
+            Initialize(uri, subProtocol, cookies, customHeaderItems, userAgent, origin, version, httpConnectProxy, 0);
         }
     }
 }

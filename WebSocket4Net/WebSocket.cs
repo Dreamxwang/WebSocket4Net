@@ -7,7 +7,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using SuperSocket.ClientEngine;
-using SuperSocket.ClientEngine.Protocol;
+using WebSocket4Net.Common;
 using WebSocket4Net.Protocol;
 
 namespace WebSocket4Net
@@ -15,6 +15,9 @@ namespace WebSocket4Net
     public partial class WebSocket : IDisposable
     {
         internal TcpClientSession Client { get; private set; }
+
+
+        private EndPoint m_RemoteEndPoint;
 
         /// <summary>
         /// Gets the version of the websocket protocol.
@@ -42,7 +45,7 @@ namespace WebSocket4Net
         /// </value>
         public int AutoSendPingInterval { get; set; }
 
-        protected const string UserAgentKey = "UserAgent";
+        protected const string UserAgentKey = "User-Agent";
 
         internal IProtocolProcessor ProtocolProcessor { get; private set; }
 
@@ -60,6 +63,8 @@ namespace WebSocket4Net
         internal List<KeyValuePair<string, string>> Cookies { get; private set; }
 
         internal List<KeyValuePair<string, string>> CustomHeaderItems { get; private set; }
+
+        public const int DefaultReceiveBufferSize = 4096;
 
 
         private int m_StateCode;
@@ -120,7 +125,55 @@ namespace WebSocket4Net
         public bool NoDelay { get; set; }
 #endif
 
-        private bool m_disposed = false;
+#if !SILVERLIGHT
+        /// <summary>
+        /// set/get the local bind endpoint
+        /// </summary>
+        public EndPoint LocalEndPoint
+        {
+            get
+            {
+                if (Client == null)
+                    return null;
+
+                return Client.LocalEndPoint;
+            }
+
+            set
+            {
+                if (Client == null)
+                    throw new Exception("Websocket client is not initilized.");
+
+                Client.LocalEndPoint = value;
+            }
+        }
+#endif
+
+#if !SILVERLIGHT
+
+        private SecurityOption m_Security;
+
+        /// <summary>
+        /// get the websocket's security options
+        /// </summary>
+        public SecurityOption Security
+        {
+            get
+            {
+                if (m_Security != null)
+                    return m_Security;
+
+                var secureClient = Client as SslStreamTcpSession;
+
+                if (secureClient == null)
+                    return m_Security = new SecurityOption();
+
+                return m_Security = secureClient.Security;
+            }
+        }
+#endif
+
+        private bool m_Disposed = false;
 
         static WebSocket()
         {
@@ -132,7 +185,7 @@ namespace WebSocket4Net
             TargetUri = new Uri(uri);
 
             if (string.IsNullOrEmpty(Origin))
-                Origin = TargetUri.GetLeftPart(UriPartial.Authority);
+                Origin = TargetUri.GetOrigin();
 
             IPAddress ipAddress;
 
@@ -154,15 +207,18 @@ namespace WebSocket4Net
         TcpClientSession CreateClient(string uri)
         {
             int port;
-            var targetEndPoint = ResolveUri(uri, 80, out port);
+            var targetEndPoint = m_RemoteEndPoint = ResolveUri(uri, 80, out port);
 
             if (port == 80)
                 HandshakeHost = TargetUri.Host;
             else
                 HandshakeHost = TargetUri.Host + ":" + port;
 
-            return new AsyncTcpSession(m_HttpConnectProxy ?? targetEndPoint);
+            return new AsyncTcpSession();
         }
+
+
+#if !NETFX_CORE
 
         TcpClientSession CreateSecureClient(string uri)
         {
@@ -192,17 +248,23 @@ namespace WebSocket4Net
             }
 
             int port;
-            var targetEndPoint = ResolveUri(uri, m_SecurePort, out port);
+            var targetEndPoint = m_RemoteEndPoint = ResolveUri(uri, m_SecurePort, out port);
+
+            if (m_HttpConnectProxy != null)
+            {
+                m_RemoteEndPoint = m_HttpConnectProxy;
+            }
 
             if (port == m_SecurePort)
                 HandshakeHost = TargetUri.Host;
             else
                 HandshakeHost = TargetUri.Host + ":" + port;
 
-            return new SslStreamTcpSession(m_HttpConnectProxy ?? targetEndPoint);
+            return CreateSecureTcpSession();
         }
+#endif
 
-        private void Initialize(string uri, string subProtocol, List<KeyValuePair<string, string>> cookies, List<KeyValuePair<string, string>> customHeaderItems, string userAgent, string origin, WebSocketVersion version, EndPoint httpConnectProxy)
+        private void Initialize(string uri, string subProtocol, List<KeyValuePair<string, string>> cookies, List<KeyValuePair<string, string>> customHeaderItems, string userAgent, string origin, WebSocketVersion version, EndPoint httpConnectProxy, int receiveBufferSize)
         {
             if (version == WebSocketVersion.None)
             {
@@ -251,6 +313,8 @@ namespace WebSocket4Net
 
             m_HttpConnectProxy = httpConnectProxy;
 
+
+
             TcpClientSession client;
 
             if (uri.StartsWith(m_UriPrefix, StringComparison.OrdinalIgnoreCase))
@@ -259,13 +323,18 @@ namespace WebSocket4Net
             }
             else if (uri.StartsWith(m_SecureUriPrefix, StringComparison.OrdinalIgnoreCase))
             {
+#if !NETFX_CORE
                 client = CreateSecureClient(uri);
+#else
+                throw new NotSupportedException("WebSocket4Net still has not supported secure websocket for UWP yet.");
+#endif
             }
             else
             {
                 throw new ArgumentException("Invalid uri", "uri");
             }
 
+            client.ReceiveBufferSize = receiveBufferSize > 0 ? receiveBufferSize : DefaultReceiveBufferSize;
             client.Connected += new EventHandler(client_Connected);
             client.Closed += new EventHandler(client_Closed);
             client.Error += new EventHandler<ErrorEventArgs>(client_Error);
@@ -325,7 +394,7 @@ namespace WebSocket4Net
                 Client.Proxy = Proxy;
 
 #if !__IOS__
-            Client.NoDeplay = NoDelay;
+            Client.NoDelay = NoDelay;
 #endif
 
 #if SILVERLIGHT
@@ -333,7 +402,7 @@ namespace WebSocket4Net
             Client.ClientAccessPolicyProtocol = ClientAccessPolicyProtocol;
 #endif
 #endif
-            Client.Connect();
+            Client.Connect(m_RemoteEndPoint);
         }
 
         private static IProtocolProcessor GetProtocolProcessor(WebSocketVersion version)
@@ -378,13 +447,24 @@ namespace WebSocket4Net
 
         private void OnPingTimerCallback(object state)
         {
+            var protocolProcessor = state as IProtocolProcessor;
+
             if (!string.IsNullOrEmpty(m_LastPingRequest) && !m_LastPingRequest.Equals(LastPongResponse))
             {
-                //have not got last response
-                return;
+                // have not got last response
+                // Verify that the remote endpoint is still responsive 
+                // by sending an un-solicited PONG frame:
+                try
+                {
+                    protocolProcessor.SendPong(this, "");
+                }
+                catch (Exception e)
+                {
+                    OnError(e);
+                    return;
+                }
             }
 
-            var protocolProcessor = state as IProtocolProcessor;
             m_LastPingRequest = DateTime.Now.ToString();
 
             try
@@ -607,10 +687,19 @@ namespace WebSocket4Net
 
         private void ClearTimer()
         {
-            if (m_WebSocketTimer != null)
+            var timer = m_WebSocketTimer;
+
+            if (timer == null)
+                return;
+
+            lock (this)
             {
-                m_WebSocketTimer.Change(Timeout.Infinite, Timeout.Infinite);
-                m_WebSocketTimer.Dispose();
+                if (m_WebSocketTimer == null)
+                    return;
+
+                timer.Change(Timeout.Infinite, Timeout.Infinite);
+                timer.Dispose();
+
                 m_WebSocketTimer = null;
             }
         }
@@ -656,7 +745,7 @@ namespace WebSocket4Net
 
         protected virtual void Dispose(bool disposing)
         {
-            if (m_disposed)
+            if (m_Disposed)
                 return;
 
             if (disposing)
@@ -676,13 +765,10 @@ namespace WebSocket4Net
                     Client = null;
                 }
 
-                if (m_WebSocketTimer != null)
-                {
-                    m_WebSocketTimer.Dispose();
-                }
+                ClearTimer();
             }
 
-            m_disposed = true;
+            m_Disposed = true;
         }
 
         ~WebSocket()

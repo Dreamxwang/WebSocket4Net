@@ -31,17 +31,9 @@
     <ConsolePause>False</ConsolePause>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="SuperSocket.ClientEngine.Common, Version=0.3.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\Reference\SuperSocket.ClientEngine\MonoTouch\$(Configuration)\SuperSocket.ClientEngine.Common.dll</HintPath>
-    </Reference>
-    <Reference Include="SuperSocket.ClientEngine.Core, Version=0.3.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\Reference\SuperSocket.ClientEngine\MonoTouch\$(Configuration)\SuperSocket.ClientEngine.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="SuperSocket.ClientEngine.Protocol, Version=0.3.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\Reference\SuperSocket.ClientEngine\MonoTouch\$(Configuration)\SuperSocket.ClientEngine.Protocol.dll</HintPath>
-    </Reference>
-    <Reference Include="SuperSocket.ClientEngine.Proxy, Version=0.3.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\Reference\SuperSocket.ClientEngine\MonoTouch\$(Configuration)\SuperSocket.ClientEngine.Proxy.dll</HintPath>
+    <Reference Include="SuperSocket.ClientEngine, Version=0.8.0.10, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\SuperSocket.ClientEngine.Core.0.8.0.10\lib\monotouch10\SuperSocket.ClientEngine.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Runtime.Serialization" />
@@ -79,6 +71,33 @@
     </Compile>
     <Compile Include="..\WebSocket4Net\Command\WebSocketCommandBase.cs">
       <Link>Command\WebSocketCommandBase.cs</Link>
+    </Compile>
+    <Compile Include="..\WebSocket4Net\Common\ArraySegmentEx.cs">
+      <Link>Common\ArraySegmentEx.cs</Link>
+    </Compile>
+    <Compile Include="..\WebSocket4Net\Common\ArraySegmentList.cs">
+      <Link>Common\ArraySegmentList.cs</Link>
+    </Compile>
+    <Compile Include="..\WebSocket4Net\Common\BinaryCommandInfo.cs">
+      <Link>Common\BinaryCommandInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\WebSocket4Net\Common\CommandInfo.cs">
+      <Link>Common\CommandInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\WebSocket4Net\Common\DelegateCommand.cs">
+      <Link>Common\DelegateCommand.cs</Link>
+    </Compile>
+    <Compile Include="..\WebSocket4Net\Common\IClientCommandReader.cs">
+      <Link>Common\IClientCommandReader.cs</Link>
+    </Compile>
+    <Compile Include="..\WebSocket4Net\Common\ICommand.cs">
+      <Link>Common\ICommand.cs</Link>
+    </Compile>
+    <Compile Include="..\WebSocket4Net\Common\ICommandInfo.cs">
+      <Link>Common\ICommandInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\WebSocket4Net\Common\StringCommandInfo.cs">
+      <Link>Common\StringCommandInfo.cs</Link>
     </Compile>
     <Compile Include="..\WebSocket4Net\DataReceivedEventArgs.cs">
       <Link>DataReceivedEventArgs.cs</Link>
@@ -185,6 +204,9 @@
     <Compile Include="..\WebSocket4Net\WebSocket.Net.cs">
       <Link>WebSocket.Net.cs</Link>
     </Compile>
+    <Compile Include="..\WebSocket4Net\WebSocket.NoSilverlight.cs">
+      <Link>WebSocket.NoSilverlight.cs</Link>
+    </Compile>
     <Compile Include="..\WebSocket4Net\WebSocketCommandInfo.cs">
       <Link>WebSocketCommandInfo.cs</Link>
     </Compile>
@@ -198,6 +220,9 @@
       <Link>WebSocketVersion.cs</Link>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.MonoTouch.CSharp.targets" />
   <ProjectExtensions>
